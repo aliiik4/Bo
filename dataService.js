@@ -6,7 +6,7 @@
 const API_CONFIG = {
     // 🔑 کلید API رایگان بورس ایران (دریافت از https://brsapi.ir)
     // شما باید در این وب‌سایت ثبت‌نام کرده و کلید رایگان دریافت کنید
-    BOURSE_API_KEY: 'YOUR_FREE_API_KEY_HERE', // جایگزین کنید
+    BOURSE_API_KEY: 'BsU5AwL7inTyGmTCzyV3C3mEFBlFtLRY', // جایگزین کنید
     BOURSE_BASE_URL: 'https://BrsApi.ir/Api/Tsetmc',
 
     // آدرس API نمونه برای رمزارزها (در آینده می‌توانید از CoinGecko یا Binance استفاده کنید)
