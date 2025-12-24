@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تحلیلگر حرفه‌ای بازار - نسخه عملیاتی</title>
+    <!-- لینک به فایل استایل خارجی -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- فونت فارسی -->
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- آیکون‌ها -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- کتابخانه‌های نمودار -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+</head>
+<body>
+    <!-- بارگذاری اولیه -->
+    <div id="loading" class="loading-container">
+        <div class="spinner"></div>
+        <p>در حال بارگذاری داده‌های بازار...</p>
+    </div>
+
+    <!-- برنامه اصلی (در ابتدا مخفی) -->
+    <div id="app" class="container hidden">
+        <!-- سرصفحه -->
+        <header class="app-header">
+            <h1><i data-lucide="trending-up"></i> تحلیلگر هوشمند بازار</h1>
+            <p class="subtitle">داده‌های واقعی بورس تهران و فرابورس | تحلیل تکنیکال پیشرفته</p>
+            <div class="market-status">
+                <span id="marketTime">--:--:--</span>
+                <span class="status-badge" id="marketStatus">در حال به‌روزرسانی</span>
+            </div>
+        </header>
+
+        <!-- کنترل‌های اصلی -->
+        <div class="controls-card">
+            <div class="controls-grid">
+                <div class="search-box">
+                    <i data-lucide="search"></i>
+                    <input type="text" id="searchInput" placeholder="جستجوی نماد (مانند: شتران، فولاد)" aria-label="جستجوی نماد">
+                </div>
+                <select id="marketFilter" class="select-box" aria-label="فیلتر بازار">
+                    <option value="all">همه بازارها</option>
+                    <option value="tehran">بورس تهران</option>
+                    <option value="farabourse">فرابورس</option>
+                    <option value="crypto">رمززارز (نمونه)</option>
+                </select>
+                <select id="sortFilter" class="select-box" aria-label="مرتب‌سازی">
+                    <option value="volume">پرحجم‌ترین</option>
+                    <option value="change">بیشترین تغییر</option>
+                    <option value="name">الفبایی</option>
+                </select>
+                <button id="refreshBtn" class="btn-primary">
+                    <i data-lucide="refresh-cw"></i> بروزرسانی
+                </button>
+            </div>
+            <div class="filters-row">
+                <button class="filter-chip active" data-filter="all">همه</button>
+                <button class="filter-chip" data-filter="positive">سبزها <i data-lucide="trending-up"></i></button>
+                <button class="filter-chip" data-filter="negative">قرمزها <i data-lucide="trending-down"></i></button>
+                <button class="filter-chip" data-filter="favorite">موردعلاقه <i data-lucide="star"></i></button>
+            </div>
+        </div>
+
+        <!-- کارت‌های نمادها -->
+        <div class="symbols-container" id="symbolsContainer">
+            <!-- نمادها به صورت پویا اینجا ساخته می‌شوند -->
+        </div>
+
+        <!-- تحلیل مفصل (مخفی در ابتدا) -->
+        <div id="detailModal" class="modal hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 id="detailSymbol">نماد</h2>
+                    <button id="closeModal" class="btn-close" aria-label="بستن">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="detail-price">
+                        <span id="detailLastPrice">0</span>
+                        <span id="detailChange" class="change-positive">+0%</span>
+                    </div>
+                    
+                    <div class="chart-container">
+                        <canvas id="priceChart"></canvas>
+                    </div>
+                    
+                    <div class="analysis-cards">
+                        <div class="analysis-card">
+                            <h3><i data-lucide="activity"></i> تحلیل تکنیکال</h3>
+                            <div class="indicators">
+                                <div class="indicator">
+                                    <span>وضعیت روند:</span>
+                                    <strong id="indicatorTrend">--</strong>
+                                </div>
+                                <div class="indicator">
+                                    <span>میانگین متحرک (۲۰ روزه):</span>
+                                    <strong id="indicatorMA20">--</strong>
+                                </div>
+                                <div class="indicator">
+                                    <span>نقطه حمایت:</span>
+                                    <strong id="indicatorSupport">--</strong>
+                                </div>
+                                <div class="indicator">
+                                    <span>نقطه مقاومت:</span>
+                                    <strong id="indicatorResistance">--</strong>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="analysis-card">
+                            <h3><i data-lucide="users"></i> معاملات حقیقی/حقوقی</h3>
+                            <div class="trade-stats">
+                                <div class="stat">
+                                    <span>خرید حقیقی:</span>
+                                    <strong id="statBuyIndividual">--</strong>
+                                </div>
+                                <div class="stat">
+                                    <span>فروش حقیقی:</span>
+                                    <strong id="statSellIndividual">--</strong>
+                                </div>
+                                <div class="stat">
+                                    <span>خالص حقیقی:</span>
+                                    <strong id="statNetIndividual">--</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="btn-secondary" id="addToFavorite">
+                            <i data-lucide="star"></i> افزودن به علاقه‌مندی‌ها
+                        </button>
+                        <button class="btn-secondary" id="setAlert">
+                            <i data-lucide="bell"></i> تنظیم هشدار قیمت
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- پانویس -->
+        <footer class="app-footer">
+            <p>⚠️ نکات مهم:</p>
+            <ul class="disclaimer-list">
+                <li>اطلاعات بازار با تاخیر (معمولا ۱۵ دقیقه) از <a href="https://brsapi.ir" target="_blank" rel="noopener">BrsApi.ir[citation:3]</a> دریافت می‌شود.</li>
+                <li>تحلیل‌های ارائه شده جنبه آموزشی دارد و پیشنهاد مالی محسوب نمی‌شود.</li>
+                <li>برای استفاده کامل، نیاز به دریافت کلید API رایگان از لینک فوق دارید.</li>
+            </ul>
+            <p class="footer-note"> توسعه‌یافته با <i data-lucide="heart" class="icon-heart"></i> برای تریدرهای ایرانی | آخرین به‌روزرسانی: <span id="currentDate"></span></p>
+        </footer>
+    </div>
+
+    <!-- اسکریپت‌های خارجی -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- اسکریپت‌های داخلی پروژه -->
+    <script src="dataService.js"></script>
+    <script src="analysisEngine.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
